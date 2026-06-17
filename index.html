@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>타이타닉 생존율 분석 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-50 p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-blue-900 mb-2">타이타닉호의 배려: 생존율 분석</h1>
+            <p class="text-slate-600">"여성과 어린이, 연장자를 먼저!"라는 원칙이 실제 생존율에 어떤 차이를 만들었을까요?</p>
+        </header>
+
+        <!-- 선택 영역 -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm mb-8 border border-slate-200">
+            <label class="block text-lg font-semibold mb-4">비교할 그룹을 선택하세요:</label>
+            <select id="groupSelect" class="w-full p-3 border rounded-lg text-lg bg-blue-50 focus:ring-2 focus:ring-blue-400">
+                <option value="women">여성 (Women)</option>
+                <option value="children">어린이 (13세 이하)</option>
+                <option value="elderly">연장자 (60세 이상)</option>
+            </select>
+            <p id="description" class="mt-4 text-slate-700 italic bg-blue-50 p-4 rounded-lg">
+                선택된 그룹이 성인 남성에 비해 얼마나 더 많이 생존했는지 비교합니다.
+            </p>
+        </div>
+
+        <!-- 결과 시각화 -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold mb-4 text-center">생존율 비교 (100명당 생존자)</h2>
+                <canvas id="survivalChart"></canvas>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
+                <h2 class="text-xl font-bold mb-4 text-center">배려의 가치</h2>
+                <div id="insightText" class="text-lg leading-relaxed text-slate-800 space-y-4">
+                    <!-- 데이터 결과가 여기에 표시됨 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 실제 타이타닉 역사 데이터 기반 추정치
+        const data = {
+            men: { survivalRate: 19 },
+            women: { survivalRate: 74, name: "여성" },
+            children: { survivalRate: 55, name: "어린이" },
+            elderly: { survivalRate: 25, name: "연장자" }
+        };
+
+        let chart;
+
+        function updateChart(groupKey) {
+            const group = data[groupKey];
+            const ctx = document.getElementById('survivalChart').getContext('2d');
+            
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['성인 남성 (기준)', group.name],
+                    datasets: [{
+                        label: '100명당 생존자 수',
+                        data: [data.men.survivalRate, group.survivalRate],
+                        backgroundColor: ['#94a3b8', '#3b82f6']
+                    }]
+                },
+                options: { scales: { y: { beginAtZero: true, max: 100 } } }
+            });
+
+            const diff = group.survivalRate - data.men.survivalRate;
+            document.getElementById('insightText').innerHTML = `
+                <p>성인 남성의 생존율은 약 <strong>${data.men.survivalRate}%</strong>였습니다.</p>
+                <p>반면, <strong>${group.name}</strong> 그룹의 생존율은 <strong>${group.survivalRate}%</strong>로 나타났습니다.</p>
+                <p class="font-bold text-blue-700">결과적으로, ${group.name}은 남성보다 약 ${diff}명 더 많이 생존했습니다!</p>
+                <p class="text-sm text-slate-500 mt-4">* 데이터는 당시 사회적 배려 원칙이 실제로 작동했음을 보여줍니다.</p>
+            `;
+        }
+
+        document.getElementById('groupSelect').addEventListener('change', (e) => {
+            updateChart(e.target.value);
+        });
+
+        // 초기화
+        updateChart('women');
+    </script>
+</body>
+</html>
